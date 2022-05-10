@@ -61,10 +61,12 @@ public class AnnotationAwareOrderComparator extends OrderComparator {
 	@Override
 	@Nullable
 	protected Integer findOrder(Object obj) {
+		// 优先判断order接口,优先级最高PriorityOrdered，其次Ordered
 		Integer order = super.findOrder(obj);
 		if (order != null) {
 			return order;
 		}
+		// 接口不存在情况下，判断order注解
 		return findOrderFromAnnotation(obj);
 	}
 

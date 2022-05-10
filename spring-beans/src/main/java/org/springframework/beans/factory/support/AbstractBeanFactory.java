@@ -405,6 +405,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@Override
 	public boolean containsBean(String name) {
 		String beanName = transformedBeanName(name);
+		// containsSingleton(beanName) 从单例池中判断
+		// containsBeanDefinition(beanName) 从beanDefinition池中查询判断
+		// 判断两次的原因是，大部分单例都存在BeanDefinitionMap中，但是有些单例比如手动注入到单例池中的bean是无法在BeanDefinitionMap中找到的
 		if (containsSingleton(beanName) || containsBeanDefinition(beanName)) {
 			return (!BeanFactoryUtils.isFactoryDereference(name) || isFactoryBean(name));
 		}

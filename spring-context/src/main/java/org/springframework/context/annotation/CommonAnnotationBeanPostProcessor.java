@@ -313,8 +313,10 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+		// 根据类中的@resource注解实例化一些注入器，最终封装为一个注入元数据对象
 		InjectionMetadata metadata = findResourceMetadata(beanName, bean.getClass(), pvs);
 		try {
+
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (Throwable ex) {
@@ -517,14 +519,26 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		if (factory instanceof AutowireCapableBeanFactory) {
 			AutowireCapableBeanFactory beanFactory = (AutowireCapableBeanFactory) factory;
 			DependencyDescriptor descriptor = element.getDependencyDescriptor();
+			/**
+			 * @Resource
+			 * T   t
+			 */
+			// fallbackToDefaultTypeMatch，一般都是ture
+			// isDefaultName 是否为默认名称，一般都是ture
+			// 参数名t无法从spring容器中找到
 			if (this.fallbackToDefaultTypeMatch && element.isDefaultName && !factory.containsBean(name)) {
 				autowiredBeanNames = new LinkedHashSet<>();
+				// 从DefaultListableBeanFactory解析依赖。
+				// 与@autowire的流程一致，找到一个就返回，找到多个一定会报错，因为 !factory.containsBean(name)=true 才会走到这段逻辑
 				resource = beanFactory.resolveDependency(descriptor, requestingBeanName, autowiredBeanNames, null);
 				if (resource == null) {
 					throw new NoSuchBeanDefinitionException(element.getLookupType(), "No resolvable resource object");
 				}
 			}
+
+			// 参数名t可以从spring容器中找到
 			else {
+				// 从spring容器中获取实例对象
 				resource = beanFactory.resolveBeanByName(name, descriptor);
 				autowiredBeanNames = Collections.singleton(name);
 			}
@@ -620,6 +634,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			Resource resource = ae.getAnnotation(Resource.class);
 			String resourceName = resource.name();
 			Class<?> resourceType = resource.type();
+			// 如果没有取名字，则isDefaultName=ture
 			this.isDefaultName = !StringUtils.hasLength(resourceName);
 			if (this.isDefaultName) {
 				resourceName = this.member.getName();

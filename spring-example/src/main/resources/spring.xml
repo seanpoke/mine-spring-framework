@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!--	<bean id="m" class="com.test.autoModel.defaults.M" >-->
+<!--&lt;!&ndash;		<property name="nfsdfsdfsdf">&ndash;&gt;-->
+<!--&lt;!&ndash;			<ref bean="n"></ref>&ndash;&gt;-->
+<!--&lt;!&ndash;		</property>&ndash;&gt;-->
+<!--	</bean>-->
+
+<!--	<bean id="n"  class="com.test.autoModel.defaults.N">-->
+<!--	</bean>-->
+
+<!--	<bean id="a"  class="com.test.autoModel.defaults.A">-->
+<!--	</bean>-->
+
+<!--	静态工厂方法的例子-->
+<!--	<bean id="a" class="com.test.autoModel.statics.ObjectStaticFactory" factory-method="instanceObject">-->
+<!--	</bean>-->
+
+
+	<!-- 实例工厂方法的例子-->
+<!--	<bean id="a" class="com.test.autoModel.statics.A" factory-bean="objectFactory" factory-method="instanceObject">-->
+<!--	</bean>-->
+<!--	<bean id="objectFactory" class="com.test.autoModel.statics.ObjectFactory">-->
+<!--	</bean>-->
+</beans>

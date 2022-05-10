@@ -99,6 +99,7 @@ public class OrderComparator implements Comparator<Object> {
 		Integer order = null;
 		if (obj != null && sourceProvider != null) {
 			Object orderSource = sourceProvider.getOrderSource(obj);
+			// 是否有其他排序规则
 			if (orderSource != null) {
 				if (orderSource.getClass().isArray()) {
 					for (Object source : ObjectUtils.toObjectArray(orderSource)) {
@@ -113,6 +114,8 @@ public class OrderComparator implements Comparator<Object> {
 				}
 			}
 		}
+		// 没有其他排序规则情况下，走order排序
+		// 子类AnnotationAwareOrderComparator#getOrder
 		return (order != null ? order : getOrder(obj));
 	}
 

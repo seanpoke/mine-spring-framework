@@ -116,6 +116,8 @@ public class InjectionMetadata {
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
 			for (InjectedElement element : elementsToIterate) {
+				// AutowiredFieldElement  AutowiredMethodElement 重写了inject方法，执行子类inject方法
+				// ResourceElement 执行父inject方法
 				element.inject(target, beanName, pvs);
 			}
 		}
