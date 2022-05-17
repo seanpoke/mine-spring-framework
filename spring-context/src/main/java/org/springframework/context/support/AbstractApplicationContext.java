@@ -178,6 +178,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private ConfigurableEnvironment environment;
 
 	/** BeanFactoryPostProcessors to apply on refresh. */
+	// 保存外部api手动加入的BeanFactoryPostProcessor （非内置的）
 	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
 	/** System time in milliseconds when this context started. */
@@ -530,6 +531,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				/**
+				 * 完成beanDefinition扫描和注册(重要)
+				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
@@ -626,6 +630,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void initPropertySources() {
 		// For subclasses: do nothing by default.
+
+		//我自己写的demo
+		//getEnvironment().setRequiredProperties("XXX");
 	}
 
 	/**
@@ -704,6 +711,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
+		// 执行BeanFactoryPostProcessor
+		// 先执行子类方法
+		// 		1、执行外部api的子类的子类方法
+		// 		2、执行bdm的子类的子类方法(扫描bd加入到bdm)
+		// 再执行父类方法
+		// 		1、执行所有子类的父类方法
+		// 		2、执行外部api的父类的父类方法
+		//		3、执行dbm中父类的父类方法
+		//
+		// 执行顺序： 外部api ---> dbm
+		//			子类方法 ---> 父类方法
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
