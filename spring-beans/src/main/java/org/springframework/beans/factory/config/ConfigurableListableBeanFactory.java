@@ -47,6 +47,7 @@ public interface ConfigurableListableBeanFactory
 	 * for example, String. Default is none.
 	 * @param type the dependency type to ignore
 	 */
+	// 所有注入模型为自动注入的bean中当属性依赖类型为type时，跳过该属性
 	void ignoreDependencyType(Class<?> type);
 
 	/**

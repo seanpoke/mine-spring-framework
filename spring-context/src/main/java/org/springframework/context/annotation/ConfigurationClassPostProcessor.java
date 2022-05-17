@@ -234,6 +234,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 		this.registriesPostProcessed.add(registryId);
 
+		// 包括通过@Import注解扫描所有ImportBeanDefinitionRegistrar，执行其回调方法registerBeanDefinitions
 		processConfigBeanDefinitions(registry);
 	}
 

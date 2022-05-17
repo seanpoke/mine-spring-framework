@@ -63,8 +63,30 @@ final class PostProcessorRegistrationDelegate {
 	 *  子类：直接实现了BeanDefinitionRegistryPostProcessor接口的类
 	 *  子类方法：BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry()
 	 *
+	 *  ccpp:ConfigurationClassPostProcessor
+	 *
+	 *  执行顺序： 外部api ---> dbm
+	 * 		     子类方法 ---> 父类方法
+	 *
+	 *  0、BeanDefinitionRegistryPostProcessor与ImportBeanDefinitionRegistrar的区别
+	 *  	。ImportBeanDefinitionRegistrar回调方法中可以获取到注解信息，比如@MapperScan。
+	 * 		. ImportBeanDefinitionRegistrar执行时机早于BeanDefinitionRegistryPostProcessor（除了外部api提供的）
+	 * 		. BeanDefinitionRegistryPostProcessor（除了外部api提供的）对一些bean的注册可能有部分功能失效，比如@bean注解
+	 * 		. ImportBeanDefinitionRegistrar没有上述问题，因为它在cccpp内部执行
+	 * 		. 如果要动态注册bd，建议使用ImportBeanDefinitionRegistrar
+	 *
+	 *  1、为什么要先执行外部api的后执行bdm内置的？--- 保证外部api子类的子类方法中产生的对象bd在内置bdm扫描开始之前添加进去。（ccpp会对bd的@bean注解等进行解析），防止出现残次bean
+	 *
+	 *  2、子类每次都重新从bdm中根据类型重新获取，而父类只根据类型从bdm获取一次？---子类中存在动态注册beanDefinition的行为，所以bdm是动态变化的，而父类中不会存在注册的行为
+	 *
+	 *  3、在扫描父类的时候为什么对于扫描出来的高优先级父类要直接实例化？--- 如果其他父类扫描出来的时候同时也实例化，那么在高优先级的父类中修改其他父类时，会导致修改无法生效。道理同下。
+	 *  	。对于同批次扫描出来的父类，仅高优先级的父类【扫描出来后就直接实例化】再统一执行父类方法，其他父类扫【仅描出来】后续统一再实例化并执行父类方法。
+	 *
+	 *  4、在BeanDefinitionRegistryPostProcessor中修改bd的局限性---提高子类的等级，比如实现priorityOrdered接口，保证D在J之前被扫描并实例化
+	 *  	。对于同批次扫描出来的子类，【扫描出来后就直接实例化】再统一执行子类方法。相互之间修改对方的beanClass等属性会不生效。
 	 *
 	 *  5、processedBeans为扫描不需要加入外部api的？--- 外部的api存储在List<BeanFactoryPostProcessor>中，而processedBeans存储的为bdm中扫描出的，而bdm是动态是动态变化的
+	 *
 	 *  6、BeanFactoryPostProcessor中为什么不开发注册bd（可以强转完成）？---可能不会注册或注册残次的bean。
 	 */
 	public static void invokeBeanFactoryPostProcessors(
@@ -231,15 +253,17 @@ final class PostProcessorRegistrationDelegate {
 				// skip - already processed in first phase above
 			}
 			else if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
-				// 这里直接实例化
+				/**
+				 * 对实现了PriorityOrdered接口的父类进行实例化
+				 */
 				priorityOrderedPostProcessors.add(beanFactory.getBean(ppName, BeanFactoryPostProcessor.class));
 			}
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
-				// 这里存储类名
+				// 这里仅存储类名
 				orderedPostProcessorNames.add(ppName);
 			}
 			else {
-				// 这里存储类名
+				// 这里仅存储类名
 				nonOrderedPostProcessorNames.add(ppName);
 			}
 		}

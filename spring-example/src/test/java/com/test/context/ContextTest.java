@@ -1,17 +1,10 @@
 package com.test.context;
 
 
-import com.test.batis.bean.F;
 import com.test.context.bean.A;
-import com.test.context.bfpp.B;
-import com.test.context.bfpp.C;
-import com.test.context.bfpp.X;
+import com.test.context.bean.ignore.F;
 import com.test.context.config.ContextConfig;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.io.ClassPathResource;
@@ -48,11 +41,11 @@ public class ContextTest {
 		//a.getC();
 
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.addBeanFactoryPostProcessor(new B());
-		context.addBeanFactoryPostProcessor(new C());
+		//context.addBeanFactoryPostProcessor(new B());
+		//context.addBeanFactoryPostProcessor(new C());
 		context.register(ContextConfig.class);
 		context.refresh();
-		System.out.println(context.getBean(X.class));
+		System.out.println(context.getBean(F.class));
 
 
 	}

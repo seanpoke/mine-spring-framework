@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @ComponentScan("com.test.batis")
-//@MapperScan("com.test.batis.dao")
+@MapperScan("com.test.batis.dao")
 //@ImportResource("classpath:spring-batis.xml")
 @Import(MyImportBeanDefinitionRegistart.class)
 //@MyScan
