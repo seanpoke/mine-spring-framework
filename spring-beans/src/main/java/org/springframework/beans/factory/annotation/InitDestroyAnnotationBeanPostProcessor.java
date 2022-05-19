@@ -217,6 +217,9 @@ public class InitDestroyAnnotationBeanPostProcessor
 	}
 
 	private LifecycleMetadata buildLifecycleMetadata(final Class<?> clazz) {
+		// commonAnnotationBeanPostProcessor为当前类的子类，在其构造方法中设置
+		// 		setInitAnnotationType(PostConstruct.class);
+		//		setDestroyAnnotationType(PreDestroy.class);
 		if (!AnnotationUtils.isCandidateClass(clazz, Arrays.asList(this.initAnnotationType, this.destroyAnnotationType))) {
 			return this.emptyLifecycleMetadata;
 		}
