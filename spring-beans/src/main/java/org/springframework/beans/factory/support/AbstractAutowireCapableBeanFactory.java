@@ -584,7 +584,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
 
-		// 单例、支持循环依赖、
+		// 单例、支持循环依赖、bean正在被创建
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
 		if (earlySingletonExposure) {
@@ -616,7 +616,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// 是否支持循环依赖
 		if (earlySingletonExposure) {
+			// 从二级缓存中获取对象
+			/**
+			 * == null,普通注入，无需校验
+			 * ! =null 存在循环依赖
+			 * 1、exposedObject == bean，二级缓存中为代理对象
+			 * 2、exposedObject != bean，二级缓存中为半成品Bean
+			 */
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
 				if (exposedObject == bean) {
@@ -1815,6 +1823,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd == null || !mbd.isSynthetic()) {
 			// 执行before方法回调
 			// 在InitDestoryAnnotation的before中执行@PostConstruct注解方法的回调
+			// 完成其他Aware的回调，如ApplicationContextAwareProcessor
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 

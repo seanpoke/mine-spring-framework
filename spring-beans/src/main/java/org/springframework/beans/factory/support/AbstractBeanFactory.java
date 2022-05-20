@@ -248,7 +248,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
-		// 从单例池中获取
+		// 从单例池中获取，这里解决循环依赖
 		Object sharedInstance = getSingleton(beanName);
 		// 首次获取没有
 		if (sharedInstance != null && args == null) {

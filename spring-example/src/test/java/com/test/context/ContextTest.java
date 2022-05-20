@@ -54,10 +54,10 @@ public class ContextTest {
 	public void xmlBeanFactoryScanContext(){
 		//ClassPathXmlApplicationContext
 
-		ClassPathResource classPathResource = new ClassPathResource("spring-context.xml");
-		XmlBeanFactory beanFactory = new XmlBeanFactory(classPathResource);
-		A a = beanFactory.getBean(A.class);
-		a.getC();
+		//ClassPathResource classPathResource = new ClassPathResource("spring-context.xml");
+		//XmlBeanFactory beanFactory = new XmlBeanFactory(classPathResource);
+		//A a = beanFactory.getBean(A.class);
+		//a.getC();
 
 
 //		AnnotationConfigApplicationContext
