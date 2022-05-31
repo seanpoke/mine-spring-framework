@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-<!--	<bean id="m" class="com.test.autoModel.defaults.M" >-->
-<!--&lt;!&ndash;		<property name="nfsdfsdfsdf">&ndash;&gt;-->
-<!--&lt;!&ndash;			<ref bean="n"></ref>&ndash;&gt;-->
-<!--&lt;!&ndash;		</property>&ndash;&gt;-->
-<!--	</bean>-->
+	<context:component-scan base-package="com.test.context.bean"></context:component-scan>
 
-<!--	<bean id="n"  class="com.test.autoModel.defaults.N" autowire="byType">-->
+
+<!--	<bean id="a"  class="com.test.context.bean.A">-->
 <!--	</bean>-->
 
 <!--	<bean id="a"  class="com.test.autoModel.defaults.A">-->

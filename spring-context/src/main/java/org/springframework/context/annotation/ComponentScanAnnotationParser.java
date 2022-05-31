@@ -73,11 +73,20 @@ class ComponentScanAnnotationParser {
 	}
 
 
+	// 解析配置类上的@componentScan注解
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, String declaringClass) {
+		// scan2 扫描器2
+		// Filter 过滤
+		//   1、include
+		//   2、exclude
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 
+		// 注解上设置beanName名称生成器
+		// 如果配置了则实例化配置的名字生成策略
 		Class<? extends BeanNameGenerator> generatorClass = componentScan.getClass("nameGenerator");
+		// 如果注解配置了，则以注解为准
+		// 如果注解没有配置，则采用默认的名字生成策略（该策略为容器级别的策略，可以通过setBeanNameGenerator来修改）
 		boolean useInheritedGenerator = (BeanNameGenerator.class == generatorClass);
 		scanner.setBeanNameGenerator(useInheritedGenerator ? this.beanNameGenerator :
 				BeanUtils.instantiateClass(generatorClass));
@@ -93,22 +102,27 @@ class ComponentScanAnnotationParser {
 
 		scanner.setResourcePattern(componentScan.getString("resourcePattern"));
 
+		// 添加自定义的includeFilters
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("includeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}
+
+		// 添加自定义的excludeFilters
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("excludeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addExcludeFilter(typeFilter);
 			}
 		}
 
+		// 是否懒加载
 		boolean lazyInit = componentScan.getBoolean("lazyInit");
 		if (lazyInit) {
 			scanner.getBeanDefinitionDefaults().setLazyInit(true);
 		}
 
+		//获取用户配置的扫描路径
 		Set<String> basePackages = new LinkedHashSet<>();
 		String[] basePackagesArray = componentScan.getStringArray("basePackages");
 		for (String pkg : basePackagesArray) {
@@ -123,12 +137,17 @@ class ComponentScanAnnotationParser {
 			basePackages.add(ClassUtils.getPackageName(declaringClass));
 		}
 
+		// 添加AbstractTypeHierarchyTraversingFilter
+		// 重写matchClassName方法，判断className是否为当前声明的配置类
+		// 因为配置类本身在容器初始化之前就已经添加到beanDefinitionMap中了。
 		scanner.addExcludeFilter(new AbstractTypeHierarchyTraversingFilter(false, false) {
 			@Override
 			protected boolean matchClassName(String className) {
 				return declaringClass.equals(className);
 			}
 		});
+
+		// 执行扫描
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 
