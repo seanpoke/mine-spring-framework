@@ -75,6 +75,7 @@ class ConfigurationClassEnhancer {
 	// The callbacks to use. Note that these callbacks must be stateless.
 	private static final Callback[] CALLBACKS = new Callback[] {
 			new BeanMethodInterceptor(),
+			// 为代理对象中的beanFactory属性设置值
 			new BeanFactoryAwareMethodInterceptor(),
 			NoOp.INSTANCE
 	};
@@ -120,10 +121,13 @@ class ConfigurationClassEnhancer {
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(configSuperClass);
+		// 实现EnhancedConfiguration 标记此代理类为配置代理类，仅仅做标记判断，防止后续重复代理和与普通代理类区别
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
+		// 在代理对象中添加beanFactory属性
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
+		// callbackFilter过滤一些方法，只有符合过滤条件的才会增强
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
 		return enhancer;
@@ -239,6 +243,7 @@ class ConfigurationClassEnhancer {
 		@Override
 		@Nullable
 		public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+			// 为$$beanFactory属性赋值
 			Field field = ReflectionUtils.findField(obj.getClass(), BEAN_FACTORY_FIELD);
 			Assert.state(field != null, "Unable to find generated BeanFactory field");
 			field.set(obj, args[0]);
@@ -253,6 +258,7 @@ class ConfigurationClassEnhancer {
 
 		@Override
 		public boolean isMatch(Method candidateMethod) {
+			// 方法是否为重写的setBeanFactory方法
 			return isSetBeanFactory(candidateMethod);
 		}
 
@@ -314,6 +320,7 @@ class ConfigurationClassEnhancer {
 				}
 			}
 
+			// 判断当前执行的方式是否为ThreadLocal中保存的方法（对比执行入口，比如x方法中执行y方法，此时y方法也会进入到代理方法中，但是y方法的执行入口是x方法，此时条件就不成立）
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
 				// The factory is calling the bean method in order to instantiate and register the bean
 				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
@@ -328,6 +335,7 @@ class ConfigurationClassEnhancer {
 									"these container lifecycle issues; see @Bean javadoc for complete details.",
 							beanMethod.getDeclaringClass().getSimpleName(), beanMethod.getName()));
 				}
+				// 执行被代理类的方法
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
 
@@ -358,6 +366,7 @@ class ConfigurationClassEnhancer {
 						}
 					}
 				}
+				// 从容器中获取getBean
 				Object beanInstance = (useArgs ? beanFactory.getBean(beanName, beanMethodArgs) :
 						beanFactory.getBean(beanName));
 				if (!ClassUtils.isAssignableValue(beanMethod.getReturnType(), beanInstance)) {
@@ -402,6 +411,7 @@ class ConfigurationClassEnhancer {
 
 		@Override
 		public boolean isMatch(Method candidateMethod) {
+			// 非Object的方法、非setBeanFactory方法、方法上@Bean注解
 			return (candidateMethod.getDeclaringClass() != Object.class &&
 					!BeanFactoryAwareMethodInterceptor.isSetBeanFactory(candidateMethod) &&
 					BeanAnnotationHelper.isBeanAnnotated(candidateMethod));

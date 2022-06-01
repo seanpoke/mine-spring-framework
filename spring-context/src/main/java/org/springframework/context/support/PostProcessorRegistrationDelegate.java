@@ -68,6 +68,8 @@ final class PostProcessorRegistrationDelegate {
 	 *  执行顺序： 外部api ---> dbm
 	 * 		     子类方法 ---> 父类方法
 	 *
+	 * 		     外部子类的子方法--》内部子类的子方法--》所有子类的父方法--》外部父类的父方法--》内部父类的父方法
+	 *
 	 *  0、BeanDefinitionRegistryPostProcessor与ImportBeanDefinitionRegistrar的区别
 	 *  	。ImportBeanDefinitionRegistrar回调方法中可以获取到注解信息，比如@MapperScan。
 	 * 		. ImportBeanDefinitionRegistrar执行时机早于BeanDefinitionRegistryPostProcessor（除了外部api提供的）

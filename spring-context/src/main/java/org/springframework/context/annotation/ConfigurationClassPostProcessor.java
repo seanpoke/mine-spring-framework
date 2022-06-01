@@ -256,28 +256,34 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
+		// 扫描bdMap中的bd,如果是全配置类则生成一个代理类，如果是半配置类则不生成
 		enhanceConfigurationClasses(beanFactory);
+		// 添加bpp--ImportAwareBeanPostProcessor
+		// 1、为全配置类注册一个beanFactory对象
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 
 	/**
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
+	 *
+	 * 1、对配置类进行分类：全配置类和半配置类
+	 * 2、解析扫描配置类
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
-		// 获取外部api提供的和内置的bd beanname
+		// 获取外部api提供的和内置的bd beanname,5个内置的，1个手动配置的
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : candidateNames) {
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
-			// 判断类是否解析过
+			// 判断类是否进行过解析（这里表示是否进行全配置类和半配置类的划分）
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
-			// 全配置类和半配置类
+			// 对外部配置类进行分类：全配置类和半配置类
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				// if条件中过滤的spring内置的bd，所以此处只有外部api提供的配置
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
@@ -324,6 +330,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
+
 			// 解析配置类
 			// 添加component注解到bdMap
 			// 添加ImportBeanDefinitionRegistrar接口实现到bdMap
@@ -388,9 +395,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<>();
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
+			// 获取配置类的类型，是全配置类还是半配置类
 			Object configClassAttr = beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE);
 			AnnotationMetadata annotationMetadata = null;
 			MethodMetadata methodMetadata = null;
+			// bd是否为加了注解的类形成的bd
 			if (beanDef instanceof AnnotatedBeanDefinition) {
 				AnnotatedBeanDefinition annotatedBeanDefinition = (AnnotatedBeanDefinition) beanDef;
 				annotationMetadata = annotatedBeanDefinition.getMetadata();
@@ -442,6 +451,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			beanDef.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 			// Set enhanced subclass of the user-specified bean class
 			Class<?> configClass = beanDef.getBeanClass();
+			// 生成代理类
+			// 因为需要走spring的生命周期，将bd的beanClass替换为代理类而非直接生成代理对象，后续由spring控制对象的生命周期
 			Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 			if (configClass != enhancedClass) {
 				if (logger.isTraceEnabled()) {
@@ -462,6 +473,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			this.beanFactory = beanFactory;
 		}
 
+		// 完成配置类上加了@Configuration注解时被代理需要注入一个beanFactory对象
 		@Override
 		public PropertyValues postProcessProperties(@Nullable PropertyValues pvs, Object bean, String beanName) {
 			// Inject the BeanFactory before AutowiredAnnotationBeanPostProcessor's

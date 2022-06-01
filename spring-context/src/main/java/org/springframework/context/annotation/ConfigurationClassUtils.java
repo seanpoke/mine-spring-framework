@@ -99,7 +99,9 @@ abstract class ConfigurationClassUtils {
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
-			// 过滤spring内置的bd
+			/**
+			 * 过滤spring内置的bd
+			 */
 			Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
 			if (BeanFactoryPostProcessor.class.isAssignableFrom(beanClass) ||
 					BeanPostProcessor.class.isAssignableFrom(beanClass) ||
@@ -123,14 +125,24 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		/**
+		 * 对外部提供的配置类进行分类
+		 */
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		// 加了Configuration注解，且注解中的proxyBeanMethods属性为true
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+			// 设置该配置类属性为【全配置类】full
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+
+		// 加了Configuration注解，但是注解中的proxyBeanMethods属性为false
+		// 没有Configuration注解,但是加了4个注解（Component、ComponentScan、Import、ImportResource）中的任意一个就是半配置类
 		else if (config != null || isConfigurationCandidate(metadata)) {
+			// 设置该配置类属性为【半配置类】lite
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
 		else {
+			// 啥都没加，直接过滤
 			return false;
 		}
 

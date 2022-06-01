@@ -1,7 +1,5 @@
 package com.test.autoMode;
 
-import com.test.autoModel.defaults.M;
-import com.test.autoModel.defaults.N;
 import com.test.autoModel.inject.Demo03;
 import com.test.autoModel.inject.F;
 import com.test.autoModel.inject.I;
