@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j(topic = "e")
-@Import(E.class)
+//@Import(ABFPP.class)
 public class C {
 
 	public C(){

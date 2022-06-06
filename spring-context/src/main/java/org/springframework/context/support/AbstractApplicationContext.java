@@ -723,8 +723,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// 		2、执行外部api的父类的父类方法
 		//		3、执行dbm中父类的父类方法
 		//
-		// 执行顺序： 外部api ---> dbm
-		//			子类方法 ---> 父类方法
+	    //执行顺序：
+	    //	一级分类：子类方法 ---> 父类方法
+		//	二级分类：外部api ---> dbm
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

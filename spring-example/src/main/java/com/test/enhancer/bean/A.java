@@ -1,5 +1,6 @@
 package com.test.enhancer.bean;
 
+import com.test.scan.inherited.P;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 
@@ -22,5 +23,10 @@ public class A {
 		log.debug("-----===m2===========");
 	}
 
+	@Bean
+	public E e(){
+			log.debug("e begin create");
+		return new E();
+	}
 
 }

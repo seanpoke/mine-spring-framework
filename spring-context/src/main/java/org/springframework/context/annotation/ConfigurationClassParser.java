@@ -310,8 +310,9 @@ class ConfigurationClassParser {
 						bdCand = holder.getBeanDefinition();
 					}
 
-					// 判断扫描出来的类是全配置类还是半配置类
+					// 标记扫描出来的类是全配置类还是半配置类还是普通类
 					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
+						// 如果属性配置类则继续解析
 						parse(bdCand.getBeanClassName(), holder.getBeanName());
 					}
 				}
@@ -320,6 +321,7 @@ class ConfigurationClassParser {
 
 		// Process any @Import annotations
 		// 解析@Import注解
+		// 解析ImportBeanDefinitionRegistrar接口
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
 		// Process any @ImportResource annotations
@@ -612,7 +614,7 @@ class ConfigurationClassParser {
 						// process it as an @Configuration class
 						this.importStack.registerImport(
 								currentSourceClass.getMetadata(), candidate.getMetadata().getClassName());
-						// 当作配置类进行解析
+						// 剩下的当作配置类进行解析
 						processConfigurationClass(candidate.asConfigClass(configClass), exclusionFilter);
 					}
 				}

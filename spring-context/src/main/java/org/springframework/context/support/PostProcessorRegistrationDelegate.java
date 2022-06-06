@@ -65,8 +65,10 @@ final class PostProcessorRegistrationDelegate {
 	 *
 	 *  ccpp:ConfigurationClassPostProcessor
 	 *
-	 *  执行顺序： 外部api ---> dbm
-	 * 		     子类方法 ---> 父类方法
+	 *  执行顺序：
+	 *  	一级分类：子类方法 ---> 父类方法
+	 *  	二级分类：外部api ---> dbm
+	 *
 	 *
 	 * 		     外部子类的子方法--》内部子类的子方法--》所有子类的父方法--》外部父类的父方法--》内部父类的父方法
 	 *

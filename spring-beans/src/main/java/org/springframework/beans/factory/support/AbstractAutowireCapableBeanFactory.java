@@ -594,6 +594,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			// 提前暴露object工厂对象，缓存起来
 			// 解决循环依赖
+
+			// 一级缓存：singletonObjects，保存单例的完整Bean对象
+			// 二级缓存：earlySingletonObjects，保存三级缓存中获取的对象。多级缓存依赖情况下不会重复创建对象，提高效率
+			// 三级缓存：singletonFactories，保存ObjectFactory，方便扩展，循环依赖情况下可能注入的是一个特殊对象而非半成品Bean
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
