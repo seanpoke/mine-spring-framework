@@ -267,8 +267,25 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 *
-	 * 1、对配置类进行分类：全配置类和半配置类
-	 * 2、解析扫描配置类
+	 * 处理首个配置类
+	 * 1、对非Spring自带的配置类进行分类：全配置类和半配置类
+	 * 2、解析首个配置类，生成配置类集合
+	 * 		2.1、处理内部类，将内部类作为新的配置类递归执行步骤【2】
+	 * 		2.2、解析@PropertySource注解，封装配置文件为ResourcePropertySource对象到propertySources栈尾
+	 * 		2.3、解析@ComponentScan注解，执行扫描，将扫描出的类作为新的配置类递归执行步骤【2】
+	 * 		2.4、解析@Import注解（if分支三选一）
+	 * 			2.4.1、被Import的类实现了ImportSelect接口，则执行selectorImports方法获取手动Import的类，递归执行【2.4、解析@Import注解】逻辑
+	 * 			2.4.2、被Import的类实现了ImportBeanDefinitionRegistrar,则实例化该对象并添加到配置类的importBeanDefinitionRegistrars属性中
+	 * 			2.4.3、被Import的类作为新的配置类递归执行步骤【2】
+	 * 		2.5、解析所有@Bean方法，添加到配置类的beanMethods属性中
+	 * 		2.6、处理接口，添加接口中的default + @Bean方法，添加到配置类的beanMethods属性中
+	 * 		2.7、处理父类	，将父类作为新的配置类递归执行步骤【2】
+	 * 		2.8、将配置类添加到配置类集合中
+	 * 	3、遍历配置类集合，通过配置类加载BeanDefinition到容器中
+	 * 		3.1、如果当前配置类是被Import进来的，则添加该配置类BeanDefinition到容器中
+	 * 		3.2、添加当前配置类中所有@Bean对应的BeanDefinition到容器中
+	 * 		3.3、回调ImportBeanDefinitionRegistrar接口，执行registryBeanDefinition方法，完成手动注入BeanDefinition到容器中。
+	 * 4、确保所有新加入到容器中的BeanDefinition都执行了配置类解析的流程，如果没有（比如3.3中新增了bd可能包含@Import注解），则将其作为首个配置类循环执行步骤【2】【3】【4】
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
@@ -296,6 +313,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		// Sort by previously determined @Order value, if applicable
+		// 排序
 		configCandidates.sort((bd1, bd2) -> {
 			int i1 = ConfigurationClassUtils.getOrder(bd1.getBeanDefinition());
 			int i2 = ConfigurationClassUtils.getOrder(bd2.getBeanDefinition());
@@ -303,6 +321,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		});
 
 		// Detect any custom bean name generation strategy supplied through the enclosing application context
+		// beanname名字生成策略
 		SingletonBeanRegistry sbr = null;
 		if (registry instanceof SingletonBeanRegistry) {
 			sbr = (SingletonBeanRegistry) registry;
@@ -327,13 +346,15 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
+		// 存储所有的配置类，刚开始只有1个，首个配置类
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
+		// 已经解析的配置类
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
 
 			// 解析配置类
-			// 添加component注解到bdMap
-			// 添加ImportBeanDefinitionRegistrar接口实现到bdMap
+			// 1、添加component注解的类到bdMap
+			// 2、解析出多个配置类configClasses
 			parser.parse(candidates);
 			parser.validate();
 
@@ -347,10 +368,15 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
 
-			// 执行ImportBeanDefinitionRegistrar回调方法
+			// 从configClasses配置类信息通过@Import、@Bean、ImportBeanDefinitionRegistrar等方式加载bd到bdMap中
+			// 1、当前配置类是被Import进来的，添加当前配置类到dbMap
+			// 2、添加当前配置类中所有的@Bean到bdMap中
+			// 3、回调当前配置类中所有ImportBeanDefinitionRegistrar接口方法，方法中大概率也是手动添加类到bdMap中
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 
+			// 防止本次在bdMap中新增的bd中，包含通过IBDR回调方式注入的bd,因为这类bd没有进行配置类解析的操作，可能会有遗漏的配置信息没有解析。
+			// 简单的说就是，确保所有新加入到bdMap中的bd都走过一遍配置类解析的流程
 			candidates.clear();
 			if (registry.getBeanDefinitionCount() > candidateNames.length) {
 				String[] newCandidateNames = registry.getBeanDefinitionNames();
@@ -360,10 +386,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
 				}
 				for (String candidateName : newCandidateNames) {
+					// 是否为本次新增的
 					if (!oldCandidateNames.contains(candidateName)) {
 						BeanDefinition bd = registry.getBeanDefinition(candidateName);
+						// 是否走过解析流程
 						if (ConfigurationClassUtils.checkConfigurationClassCandidate(bd, this.metadataReaderFactory) &&
 								!alreadyParsedClasses.contains(bd.getBeanClassName())) {
+							// 重新作为首个配置类进行解析
 							candidates.add(new BeanDefinitionHolder(bd, candidateName));
 						}
 					}

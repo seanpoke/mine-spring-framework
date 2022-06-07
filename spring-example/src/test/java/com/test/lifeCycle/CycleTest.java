@@ -16,7 +16,6 @@ public class CycleTest {
 		AnnotationConfigApplicationContext
 				context
 				 = new AnnotationConfigApplicationContext(ABConfiguration.class);
-
 			context.getBean(A.class);
 	}
 

@@ -75,9 +75,13 @@ public class StandardEnvironment extends AbstractEnvironment {
 	 */
 	@Override
 	protected void customizePropertySources(MutablePropertySources propertySources) {
+		// addLast 优先从之前添加的PropertySource中获取并返回
+		// 所以默认顺序为 jvm --> 环境变量
 		propertySources.addLast(
+				// jvm参数
 				new PropertiesPropertySource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME, getSystemProperties()));
 		propertySources.addLast(
+				// 环境变量
 				new SystemEnvironmentPropertySource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, getSystemEnvironment()));
 	}
 

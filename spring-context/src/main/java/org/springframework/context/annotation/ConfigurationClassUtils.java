@@ -169,6 +169,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Any of the typical annotations found?
+		// 是否包含四个注解中的一个
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -176,6 +177,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Finally, let's look for @Bean methods...
+		// 是否有方法加了@Bean注解
 		return hasBeanMethods(metadata);
 	}
 

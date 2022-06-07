@@ -116,6 +116,7 @@ class ConfigurationClassBeanDefinitionReader {
 	 */
 	public void loadBeanDefinitions(Set<ConfigurationClass> configurationModel) {
 		TrackedConditionEvaluator trackedConditionEvaluator = new TrackedConditionEvaluator();
+		// 遍历配置类
 		for (ConfigurationClass configClass : configurationModel) {
 			loadBeanDefinitionsForConfigurationClass(configClass, trackedConditionEvaluator);
 		}
@@ -137,14 +138,19 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		// 当前配置类属于Import进来的，则当前配置类到bdMap中
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+
+		// 遍历当前配置类中包含的所有@Bean对象，添加到dbMap中
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
+		// 处理xml，忽略
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		// 执行ImportBeanDefinitionRegistrar接口方法registerBeanDefinitions
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
