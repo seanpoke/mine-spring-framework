@@ -258,8 +258,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		// 扫描bdMap中的bd,如果是全配置类则生成一个代理类，如果是半配置类则不生成
 		enhanceConfigurationClasses(beanFactory);
-		// 添加bpp--ImportAwareBeanPostProcessor
-		// 1、为全配置类注册一个beanFactory对象
+		// 添加bpp--ImportAwareBeanPostProcessor（本质是BPP），作用为全配置类注册一个beanFactory对象
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 

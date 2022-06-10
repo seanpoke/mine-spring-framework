@@ -306,22 +306,47 @@ final class PostProcessorRegistrationDelegate {
 	public static void registerBeanPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
 
+		// 从bdMap中获取所有BPP
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
 
 		// Register BeanPostProcessorChecker that logs an info message when
 		// a bean is created during BeanPostProcessor instantiation, i.e. when
 		// a bean is not eligible for getting processed by all BeanPostProcessors.
+		// 期望bean执行的bpp数量 = bdMap中的bpp + 单例池中的bpp
 		int beanProcessorTargetCount = beanFactory.getBeanPostProcessorCount() + 1 + postProcessorNames.length;
+		// 容器中原先有3个bpp:
+		// ApplicationContextAwareProcessor 处理Aware回调接口
+		// ApplicationListenerDetector 处理事件相关
+		// ImportAwareBeanPostProcessor 为全配置类生成代理对象
+		// 此时添加第4个bpp，BeanPostProcessorChecker用来检查容器中的bpp与预期的bpp数据是否一致
+
+
+
+		/**
+		 *
+		 * 在检查bpp放入容器之后，完成所有bpp注册之前，这个期间如果有普通bean被实例化则会被检查bpp判断为没有达到预期
+		 */
 		beanFactory.addBeanPostProcessor(new BeanPostProcessorChecker(beanFactory, beanProcessorTargetCount));
 
 		// Separate between BeanPostProcessors that implement PriorityOrdered,
 		// Ordered, and the rest.
+		// 实现了priorityOrdered接口的bpp对象
 		List<BeanPostProcessor> priorityOrderedPostProcessors = new ArrayList<>();
 		List<BeanPostProcessor> internalPostProcessors = new ArrayList<>();
+		// 实现了priorityOrdered接口的bpp名字
 		List<String> orderedPostProcessorNames = new ArrayList<>();
+		// 普通bpp名字
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
+
+		/**
+		 * 实例化高优先级Bpp并注册到容器的bpp集合中
+		 * 先实例化，再统一放入到bpps集合中，
+		 * 实例化过程中不会受到其他同等优先级bpp回调的影响，因为这个过程中仅仅存在临时集合中，待所有高优先级bpp实例化完成后再统一注册到bpps集合中
+		 */
 		for (String ppName : postProcessorNames) {
 			if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+				// 实例化高优先级的bpp，如autoBpp、commonBpp
+				// 先实例化，再统一放入到bpps集合中
 				BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
 				priorityOrderedPostProcessors.add(pp);
 				if (pp instanceof MergedBeanDefinitionPostProcessor) {
@@ -329,18 +354,24 @@ final class PostProcessorRegistrationDelegate {
 				}
 			}
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
+				// 不直接实例化的原因是，防止order类型的bpp实例化过程中没有机会执行其他还未实例化的Priority类型的bpp
 				orderedPostProcessorNames.add(ppName);
 			}
 			else {
 				nonOrderedPostProcessorNames.add(ppName);
 			}
 		}
-
 		// First, register the BeanPostProcessors that implement PriorityOrdered.
+		// 排序
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
+		// 注册高优先级bpp到beanPostProcessors集合中
 		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 
 		// Next, register the BeanPostProcessors that implement Ordered.
+		/**
+		 * 实例化优先级Bpp并注册到容器的bpp集合中
+		 */
+		// 实例化优先级Bpp
 		List<BeanPostProcessor> orderedPostProcessors = new ArrayList<>(orderedPostProcessorNames.size());
 		for (String ppName : orderedPostProcessorNames) {
 			BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
@@ -349,10 +380,15 @@ final class PostProcessorRegistrationDelegate {
 				internalPostProcessors.add(pp);
 			}
 		}
+		// 排序
 		sortPostProcessors(orderedPostProcessors, beanFactory);
+		// 注册优先级bpp到beanPostProcessors集合中
 		registerBeanPostProcessors(beanFactory, orderedPostProcessors);
 
 		// Now, register all regular BeanPostProcessors.
+		/**
+		 * 实例化普通Bpp并注册到容器的bpp集合中
+		 */
 		List<BeanPostProcessor> nonOrderedPostProcessors = new ArrayList<>(nonOrderedPostProcessorNames.size());
 		for (String ppName : nonOrderedPostProcessorNames) {
 			BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);

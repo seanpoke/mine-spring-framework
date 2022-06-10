@@ -1,0 +1,12 @@
+package org.spring.aop.service.impl;
+
+import lombok.extern.slf4j.Slf4j;
+import org.spring.aop.service.DeleteService;
+
+@Slf4j(topic = "e")
+public class DeleteBServiceImpl implements DeleteService {
+	@Override
+	public void delete() {
+		log.debug("b delete");
+	}
+}

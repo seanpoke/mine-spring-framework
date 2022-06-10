@@ -157,6 +157,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		Object oldProxy = null;
 		boolean setProxyContext = false;
 
+		// 目标对象
 		TargetSource targetSource = this.advised.targetSource;
 		Object target = null;
 
@@ -209,6 +210,10 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				MethodInvocation invocation =
 						new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
 				// Proceed to the joinpoint through the interceptor chain.
+				// 执行proceed
+				/**
+				 * 执行入口
+				 */
 				retVal = invocation.proceed();
 			}
 
