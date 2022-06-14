@@ -13,21 +13,21 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 
-//@Component
+//@Component("ordered")
 @Slf4j(topic = "e")
 public class TestBeanPostProcessorOrderedUpdatePorperties implements BeanPostProcessor, Ordered {
 
 	@Autowired
 	BeanPostProcessorService beanPostProcessorService;
 
-	public void printfInfo(){
-		log.debug("TestBeanPostProcessorOrderedUpdatePorperties beanPostProcessorService[{}]",beanPostProcessorService);
-	}
-
-	@PostConstruct
-	public void postConstruct(){
-		log.debug("TestBeanPostProcessorOrderedUpdatePorperties PostConstruct init");
-	}
+//	public void printfInfo(){
+//		log.debug("TestBeanPostProcessorOrderedUpdatePorperties beanPostProcessorService[{}]",beanPostProcessorService);
+//	}
+//
+//	@PostConstruct
+//	public void postConstruct(){
+//		log.debug("TestBeanPostProcessorOrderedUpdatePorperties PostConstruct init");
+//	}
 
 	public TestBeanPostProcessorOrderedUpdatePorperties(){
 		log.debug("==TestBeanPostProcessorOrderedUpdatePorperties create");

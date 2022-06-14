@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Slf4j(topic = "e")
-@Component
+@Component("normal")
 public class TestBeanPostProcessorNormal implements BeanPostProcessor, InitializingBean {
 
 //	@PostConstruct
@@ -18,8 +18,8 @@ public class TestBeanPostProcessorNormal implements BeanPostProcessor, Initializ
 //		log.debug("TestBeanPostProcessorNormal PostConstruct init");
 //	}
 
-//	@Autowired
-//	BeanPostProcessorService beanPostProcessorService;
+	@Autowired
+	BeanPostProcessorService beanPostProcessorService;
 
 	public TestBeanPostProcessorNormal(){
 		log.debug("==TestBeanPostProcessorNormal create");

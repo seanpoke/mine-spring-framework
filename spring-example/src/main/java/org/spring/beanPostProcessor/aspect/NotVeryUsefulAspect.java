@@ -6,7 +6,7 @@ import org.spring.aop.service.DeleteService;
 import org.spring.aop.service.impl.DeleteBServiceImpl;
 import org.springframework.stereotype.Component;
 
-//@Component
+@Component
 @Aspect
 @Slf4j(topic = "e")
 public class NotVeryUsefulAspect {

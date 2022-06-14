@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
  *
  */
 @Slf4j(topic = "e")
-@Component
+//@Component
 public class TestBeanPostProcessorNormalUpdatePorperties implements BeanPostProcessor {
 
 	public TestBeanPostProcessorNormalUpdatePorperties(){

@@ -34,6 +34,8 @@ public enum Propagation {
 	 * Analogous to EJB transaction attribute of the same name.
 	 * <p>This is the default setting of a transaction annotation.
 	 */
+	// 当前有事务则用当前事务，当前没有事务则创建新事务
+	// Participating in existing transaction
 	REQUIRED(TransactionDefinition.PROPAGATION_REQUIRED),
 
 	/**
@@ -47,12 +49,14 @@ public enum Propagation {
 	 * the actual synchronization configuration of the transaction manager.
 	 * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#setTransactionSynchronization
 	 */
+	// 当前有事务则用当前事务，当前没有事务则以非事务方式运行
 	SUPPORTS(TransactionDefinition.PROPAGATION_SUPPORTS),
 
 	/**
 	 * Support a current transaction, throw an exception if none exists.
 	 * Analogous to EJB transaction attribute of the same name.
 	 */
+	// 当前有事务则用当前事务，如果没有事务则异常
 	MANDATORY(TransactionDefinition.PROPAGATION_MANDATORY),
 
 	/**
@@ -65,6 +69,8 @@ public enum Propagation {
 	 * made available to it (which is server-specific in standard Java EE).
 	 * @see org.springframework.transaction.jta.JtaTransactionManager#setTransactionManager
 	 */
+	// 无论当前有没有事务，都挂起当前事务，然后创建一个新事务
+	// Suspending current transaction, creating new transaction
 	REQUIRES_NEW(TransactionDefinition.PROPAGATION_REQUIRES_NEW),
 
 	/**
@@ -77,12 +83,15 @@ public enum Propagation {
 	 * made available to it (which is server-specific in standard Java EE).
 	 * @see org.springframework.transaction.jta.JtaTransactionManager#setTransactionManager
 	 */
+	// 以非事务方式运行，如果存在事务则挂起事务（不用事务）
+	// Suspending current transaction
 	NOT_SUPPORTED(TransactionDefinition.PROPAGATION_NOT_SUPPORTED),
 
 	/**
 	 * Execute non-transactionally, throw an exception if a transaction exists.
 	 * Analogous to EJB transaction attribute of the same name.
 	 */
+	// 从来不用事务，如果有事务则异常
 	NEVER(TransactionDefinition.PROPAGATION_NEVER),
 
 	/**
@@ -94,6 +103,8 @@ public enum Propagation {
 	 * transactions as well.
 	 * @see org.springframework.jdbc.datasource.DataSourceTransactionManager
 	 */
+	// 当前有事务则创建嵌套事务（子事务），当前没有事务则创建
+	// Creating nested transaction，作为外部事务的子事务，提交或回滚都需要由外部事务决定
 	NESTED(TransactionDefinition.PROPAGATION_NESTED);
 
 

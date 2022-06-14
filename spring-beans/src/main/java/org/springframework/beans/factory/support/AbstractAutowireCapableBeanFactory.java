@@ -503,6 +503,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+			// 希望后置处理器在此能返回一个代理对象；如果能返回代理对象就使用，如果不能就继续
 			// aop相关的
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
@@ -1426,6 +1427,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		// 注入模型判断
+		/**
+		 * 注入模型自动注入下1、2，pvs包含：
+		 * 1、程序员手动注入到pvs中的pv对象
+		 * 2、根据Bean的自省机制，获取到所有包含setter方法的PropertyValue对象（不区是否包含@Autowire注解）
+		 *
+		 * 手动注入模型下 0：
+		 * 1、程序员手动注入到pvs中的pv对象
+		 *
+		 */
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
@@ -1451,11 +1461,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
-					// autowireAnnotationBeanPostProcessor在此处完成@autowire属性填充
-					// commonAnnotationBeanPostProcessor在此处完成@resource属性填充
 					/**
+					 * commonAnnotationBeanPostProcessor在此处完成@resource属性填充
+					 * autowireAnnotationBeanPostProcessor在此处完成@autowire属性填充(包括field、method,排除pvs中包含的menthod)
+					 *
 					 * 此处可以完成注解的扩展
 					 * 实现InstantiationAwareBeanPostProcessor#postProcessProperties，即可完成属性注入
+					 *
 					 */
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
@@ -1478,8 +1490,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 
+		// 处理setter方法
+		// 手动提供propertyValues 、自动注入模型下的setter方法
 		if (pvs != null) {
-			// 自动注入模型下，完成属性自动注入
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
@@ -1498,6 +1511,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
 		for (String propertyName : propertyNames) {
+			// 从容器中判断是否存在该属性
 			if (containsBean(propertyName)) {
 				Object bean = getBean(propertyName);
 				pvs.add(propertyName, bean);
@@ -1543,10 +1557,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				// Don't try autowiring by type for type Object: never makes sense,
 				// even if it technically is a unsatisfied, non-simple property.
 				if (Object.class != pd.getPropertyType()) {
+					// 查询setter方法请求参数
 					MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd);
 					// Do not allow eager init for type matching in case of a prioritized post-processor.
 					boolean eager = !(bw.getWrappedInstance() instanceof PriorityOrdered);
 					DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager);
+					// 将请求参数走autowire逻辑完成参数的实例化
 					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);
 					if (autowiredArgument != null) {
 						pvs.add(propertyName, autowiredArgument);
@@ -1582,6 +1598,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		PropertyValues pvs = mbd.getPropertyValues();
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pds) {
+			// 判断属性描述符是否有setter方法
+			// 排除程序员自己添加的PropertyValues
 			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd) && !pvs.contains(pd.getName()) &&
 					!BeanUtils.isSimpleProperty(pd.getPropertyType())) {
 				result.add(pd.getName());

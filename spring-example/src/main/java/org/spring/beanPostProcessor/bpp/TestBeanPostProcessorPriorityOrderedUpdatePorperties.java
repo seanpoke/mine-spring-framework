@@ -18,14 +18,14 @@ public class TestBeanPostProcessorPriorityOrderedUpdatePorperties implements Bea
 	@Autowired
 	BeanPostProcessorService beanPostProcessorService;
 
-	public void printfInfo(){
-		log.debug("TestBeanPostProcessorPriorityOrderedUpdatePorperties beanPostProcessorService[{}]",beanPostProcessorService);
-	}
-
-	@PostConstruct
-	public void postConstruct(){
-		log.debug("TestBeanPostProcessorPriorityOrderedUpdatePorperties PostConstruct init");
-	}
+//	public void printfInfo(){
+//		log.debug("TestBeanPostProcessorPriorityOrderedUpdatePorperties beanPostProcessorService[{}]",beanPostProcessorService);
+//	}
+//
+//	@PostConstruct
+//	public void postConstruct(){
+//		log.debug("TestBeanPostProcessorPriorityOrderedUpdatePorperties PostConstruct init");
+//	}
 	public TestBeanPostProcessorPriorityOrderedUpdatePorperties(){
 		log.debug("==TestBeanPostProcessorPriorityOrderedUpdatePorperties create");
 	}
