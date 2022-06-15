@@ -588,6 +588,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
+			// 实例化子容器
 			wac = createWebApplicationContext(rootContext);
 		}
 
